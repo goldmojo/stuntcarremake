@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Stunt Car Remake
+Comment=Stunt Car Racer port
+Exec=./stuntcarracer.sh
+Terminal=false
+Type=games
+StartupNotify=true
+Icon=icon32
+Categories=games
+X-OD-NeedsDownscaling=true
