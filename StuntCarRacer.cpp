@@ -1114,8 +1114,18 @@ static float lastFrame = 0.0f;
 /*	======================================================================================= */
 #ifdef linux
 #define FIRSTMENU SDLK_1
-#define STARTMENU SDLK_s
-#define LEAGUEMENU SDLK_l
+#ifdef GCW0
+  #define STARTMENU SDLK_RETURN // START
+#else
+  #define STARTMENU SDLK_s
+#endif
+#ifdef GCW0
+  #define LEAGUEMENU SDLK_UP // UP
+  #define PREVIOUSMENU SDLK_LEFT // LEFT
+  #define NEXTMENU SDLK_RIGHT // RIGHT
+#else
+  #define LEAGUEMENU SDLK_l
+#endif
 #else
 #define FIRSTMENU '1'
 #define STARTMENU 'S'
@@ -1138,17 +1148,45 @@ static void HandleTrackMenu( CDXUTTextHelper &txtHelper )
 	// output instructions
 	const D3DSURFACE_DESC *pd3dsdBackBuffer = DXUTGetBackBufferSurfaceDesc();
 	txtHelper.SetInsertionPos( 2+(wideScreen?10:0), pd3dsdBackBuffer->Height-15*8 );
+#ifdef GCW0
+	txtHelper.DrawFormattedTextLine( L"Current track - " STRING L".  Press 'START' to select, SELECT to quit", (TrackID == NO_TRACK ? L"None" : GetTrackName(TrackID)));
+	txtHelper.DrawTextLine( L"'LEFT/RIGHT' to choose track");
+	txtHelper.DrawTextLine( L"'UP' to switch Super League On/Off");
+#else
 	txtHelper.DrawFormattedTextLine( L"Current track - " STRING L".  Press 'S' to select, Escape to quit", (TrackID == NO_TRACK ? L"None" : GetTrackName(TrackID)));
 	txtHelper.DrawTextLine( L"'L' to switch Super League On/Off");
+#endif
 
+#ifdef GCW0
+	if ((keyPress == LEAGUEMENU) || (keyPress == PREVIOUSMENU) || (keyPress == NEXTMENU))
+#else
 	if (((keyPress >= firstMenuOption) && (keyPress <= lastMenuOption)) || (keyPress == LEAGUEMENU))
+#endif
 		{
 		if(keyPress == LEAGUEMENU) {
 			bSuperLeague = !bSuperLeague;
 			track_number = TrackID;
 			CreateCarVertexBuffer(DXUTGetD3DDevice());	// recreate car
-		} else 
+		}
+		else {
+#ifdef GCW0
+			if(keyPress == PREVIOUSMENU) {
+				track_number = TrackID;
+				if(track_number>0) {
+					track_number = track_number - 1;
+				}
+			}
+			else
+			if(keyPress == NEXTMENU) {
+				track_number = TrackID;
+				if(track_number<(NUM_TRACKS-1)) {
+					track_number = track_number + 1;
+				}
+			}
+#else
 			track_number = keyPress - firstMenuOption;	// start at 0
+#endif
+		}
 
 		if (! ConvertAmigaTrack(track_number))
 			{
@@ -1158,7 +1196,6 @@ static void HandleTrackMenu( CDXUTTextHelper &txtHelper )
 			MessageBox(NULL, L"Failed to convert track", L"Error", MB_OK);	//temp
 			return;
 			}
-
 		if (CreateTrackVertexBuffer(DXUTGetD3DDevice()) != S_OK)
 			{
 #if defined(DEBUG) || defined(_DEBUG)
@@ -1196,19 +1233,32 @@ static void HandleTrackPreview( CDXUTTextHelper &txtHelper )
 	// output instructions
 	const D3DSURFACE_DESC *pd3dsdBackBuffer = DXUTGetBackBufferSurfaceDesc();
 	txtHelper.SetInsertionPos( 2+(wideScreen?10:0), pd3dsdBackBuffer->Height-15*9 );
+#ifdef GCW0
+	txtHelper.DrawFormattedTextLine( L"Selected track - " STRING L".  Press 'START' to start game", (TrackID == NO_TRACK ? L"None" : GetTrackName(TrackID)));
+	txtHelper.DrawTextLine( L"'L2' for track menu, SELECT to quit");
+	txtHelper.DrawTextLine( L"(Press R2 to change scenery)" );
+#else
 	txtHelper.DrawFormattedTextLine( L"Selected track - " STRING L".  Press 'S' to start game", (TrackID == NO_TRACK ? L"None" : GetTrackName(TrackID)));
 	txtHelper.DrawTextLine( L"'M' for track menu, Escape to quit");
 	txtHelper.DrawTextLine( L"(Press F4 to change scenery, F9 / F10 to adjust frame rate)" );
+#endif
 
 	txtHelper.SetInsertionPos( 2+(wideScreen?10:0), pd3dsdBackBuffer->Height-15*6 );
 	txtHelper.DrawTextLine( L"Keyboard controls during game :-" );
 	#if defined(PANDORA) || defined(PYRA)
 	txtHelper.DrawTextLine( L"  DPad = Steer, (X) = Accelerate, (B) = Brake, (R) = Nitro" );
-	#else
-	txtHelper.DrawTextLine( L"  S = Steer left, D = Steer right, Enter = Accelerate, Space = Brake" );
-	#endif
 	txtHelper.DrawTextLine( L"  R = Point car in opposite direction, P = Pause, O = Unpause" );
 	txtHelper.DrawTextLine( L"  M = Back to track menu, Escape = Quit" );
+	#elif defined(GCW0)
+	txtHelper.DrawTextLine( L"  DPad = Steer, A = Accelerate, B = Brake, R1 = Nitro" );
+	txtHelper.DrawTextLine( L"  X = Pause/Unpause" );
+	txtHelper.DrawTextLine( L"  L2 = Back to track menu, SELECT = Quit" );
+	#else
+	txtHelper.DrawTextLine( L"  S = Steer left, D = Steer right, Enter = Accelerate, Space = Brake" );
+	txtHelper.DrawTextLine( L"  R = Point car in opposite direction, P = Pause, O = Unpause" );
+	txtHelper.DrawTextLine( L"  M = Back to track menu, Escape = Quit" );
+	#endif
+
 
 	if (keyPress == STARTMENU)
 		{
@@ -1346,7 +1396,11 @@ void RenderText( double fTime )
 					txtHelperLarge.SetInsertionPos( 250+(wideScreen?80:0), pd3dsdBackBuffer->Height-25*13 );
 					txtHelperLarge.DrawTextLine( L"GAME OVER" );
 					txtHelperLarge.SetInsertionPos( 132+(wideScreen?80:0), pd3dsdBackBuffer->Height-25*11 );
+#ifdef GCW0
+					txtHelperLarge.DrawTextLine( L"Press 'L2' for track menu" );
+#else
 					txtHelperLarge.DrawTextLine( L"Press 'M' for track menu" );
+#endif
 #else
 					txtHelperLarge.SetInsertionPos( 124+(wideScreen?80:0), pd3dsdBackBuffer->Height-25*12 );
 					txtHelperLarge.DrawTextLine( L"GAME OVER: Press 'M' for track menu" );
@@ -1830,7 +1884,11 @@ bool process_events()
 					DXUTReset3DEnvironment();
 					break;
 
+#ifdef GCW0
+				case SDLK_PAGEDOWN: // R2
+#else
 				case SDLK_F4:
+#endif
 					NextSceneryType();
 					break;
 
@@ -1859,7 +1917,11 @@ bool process_events()
 					bOutsideView = !bOutsideView;
 					break;
 #endif
+#ifdef GCW0
+				case SDLK_PAGEUP: // L2
+#else
 				case SDLK_m:
+#endif
 					if (GameMode != TRACK_MENU)
 					{
 						GameMode = TRACK_MENU;
@@ -1871,6 +1933,11 @@ bool process_events()
 					}
 					break;
 
+#ifdef GCW0
+				case SDLK_SPACE: // X
+				    if (bPaused) { bPaused = FALSE; break; }
+					else { bPaused = TRUE; break; }
+#else
 				case SDLK_o:
 					bPaused = FALSE;
 					break;
@@ -1878,6 +1945,7 @@ bool process_events()
 				case SDLK_p:
 					bPaused = TRUE;
 					break;
+#endif
 
 				case SDLK_z:
 					bNewGame = TRUE;		// for testing to try stopping car positioning bug
@@ -1892,8 +1960,11 @@ bool process_events()
 					lastInput |= KEY_P1_RIGHT;
 					break;
 
+// BOOST
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_RCTRL:
+#elif defined(GCW0)
+				case SDLK_BACKSPACE: // R1
 #else
 				case SDLK_SPACE:
 				case SDLK_RSHIFT:
@@ -1902,23 +1973,29 @@ bool process_events()
 					lastInput |= KEY_P1_BOOST;
 					break;
 
+// BRAKE
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_END:
+#elif defined(GCW0)
+				case SDLK_LALT: // B
 #else
 				case SDLK_DOWN:
 #endif
 					lastInput |= KEY_P1_BRAKE;
 					break;
 
+// ACCELERATE
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_PAGEDOWN:
+#elif defined(GCW0)
+				case SDLK_LCTRL: // A
 #else
 				case SDLK_UP:
 #endif
 					lastInput |= KEY_P1_ACCEL;
 					break;
 
-				case SDLK_ESCAPE:
+				case SDLK_ESCAPE: // SELECT
 					return false;
 				}
             break;
@@ -1934,8 +2011,11 @@ bool process_events()
 					lastInput &= ~KEY_P1_RIGHT;
 					break;
 
+// BOOST
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_RCTRL:
+#elif defined(GCW0)
+				case SDLK_BACKSPACE: // R1
 #else
 				case SDLK_SPACE:
 				case SDLK_RSHIFT:
@@ -1944,16 +2024,22 @@ bool process_events()
 					lastInput &= ~KEY_P1_BOOST;
 					break;
 
+// BRAKE
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_END:
+#elif defined(GCW0)
+				case SDLK_LALT: // B
 #else
 				case SDLK_DOWN:
 #endif
 					lastInput &= ~KEY_P1_BRAKE;
 					break;
 
+// ACCELERATE
 #if defined(PANDORA) || defined(PYRA)
 				case SDLK_PAGEDOWN:
+#elif defined(GCW0)
+				case SDLK_LCTRL: // A
 #else
 				case SDLK_UP:
 #endif
@@ -2105,7 +2191,14 @@ int main(int argc, const char** argv)
 #else
 		flags |= SDL_FULLSCREEN;
 #endif
-#ifdef PANDORA
+#ifdef GCW0
+#ifdef USE_SDL2
+		flags |= SDL_WINDOW_FULLSCREEN;
+#else
+	flags |= SDL_FULLSCREEN;
+#endif
+	screenW = 320; screenH = 240;
+#elif defined(PANDORA)
 #ifdef USE_SDL2
 		flags |= SDL_WINDOW_FULLSCREEN;
 #else
@@ -2165,6 +2258,7 @@ int main(int argc, const char** argv)
 	SDL_GetWindowSize(window, &screenW, &screenH);
 	SDL_SetWindowTitle(window, maintitle);
 #endif
+/*
 	{
 		// icon...
 		int x,y,n;
@@ -2187,6 +2281,7 @@ int main(int argc, const char** argv)
 			free(img);
 		}
 	}
+*/
 #ifndef USE_SDL2
 	screen = SDL_SetVideoMode( screenW, screenH, 32, flags );
     if ( screen == NULL ) {
