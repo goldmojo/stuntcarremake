@@ -3,12 +3,24 @@
 #
 
 CC=g++
-#PANDORA=1
-DEBUG=1
+#GCW0=1
+SDL=2
+DEBUG=0
 
 # general compiler settings
 ifeq ($(M32),1)
 	FLAGS= -m32
+endif
+ifeq ($(GCW0),1)
+ 	# Build GL4ES first with these options : cmake ../gl4es -DCMAKE_TOOLCHAIN_FILE=/opt/gcw0-toolchain/usr/share/buildroot/toolchainfile.cmake -DNOX11=ON
+    CC= /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-g++
+	FLAGS=    -O3
+	FLAGS+=   -DGCW0 -Dlinux
+	FLAGS+=   $(shell /opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl2-config --cflags)
+	FLAGS+=   -I../gl4es/include -I../GLU/out/include
+	FLAGS+=   -L../gl4es/lib -L../GLU/out/lib
+	FLAGS+=   $(shell /opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl2-config --libs)
+	#HAVE_GLES=1
 endif
 ifeq ($(PANDORA),1)
 	FLAGS= -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp -march=armv7-a -fsingle-precision-constant -mno-unaligned-access -fdiagnostics-color=auto -O3 -fsigned-char
@@ -83,7 +95,7 @@ ifeq ($(PROFILE),1)
 	FLAGS+= -pg
 endif
 
-#SDL=1
+
 ifeq ($(EMSCRIPTEN),1)
 	GL4ES = ../gl4es/lib/libGL.a
 	LIB+= -lopenal ${GL4ES}
@@ -174,6 +186,7 @@ $(OBJ): $(INC)
 
 clean:
 	$(RM) $(OBJ) $(BIN)
+	$(RM) -rf opk
 
 check:
 	@echo
@@ -198,3 +211,11 @@ check:
 	@echo "LDFLAGS = $(LDFLAGS)"
 	@echo "LIB = $(LIB)"
 	@echo
+
+opk:
+	@cp -rf Bitmap opk_data
+	@cp -rf Sounds opk_data
+	@cp -rf Tracks opk_data
+	@cp -f DejaVuSans-Bold.ttf opk_data
+	@cp -f stuntcarracer opk_data
+	mksquashfs opk_data stuntcarremake.opk

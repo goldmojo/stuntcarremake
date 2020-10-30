@@ -1,0 +1,7 @@
+{
+    "C_Cpp.default.defines": [
+        "linux",
+        "GCW0",
+        "USE_SDL2"
+    ]
+}
