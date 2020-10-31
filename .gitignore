@@ -15,3 +15,8 @@ StuntCarRacer_2008.VC.db
 
 StuntCarRacer_2008.VC.VC.opendb
 *.user
+
+opk_data/Bitmap
+opk_data/Sounds
+opk_data/Tracks
+opk_data/DejaVuSans-Bold.ttf
