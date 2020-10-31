@@ -16,10 +16,8 @@ ifeq ($(GCW0),1)
     CC= /opt/gcw0-toolchain/usr/bin/mipsel-gcw0-linux-uclibc-g++
 	FLAGS=    -O3
 	FLAGS+=   -DGCW0 -Dlinux
-	FLAGS+=   $(shell /opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl2-config --cflags)
-	FLAGS+=   -I../gl4es/include -I../GLU/out/include
-	FLAGS+=   -L../gl4es/lib -L../GLU/out/lib
-	FLAGS+=   $(shell /opt/gcw0-toolchain/usr/mipsel-gcw0-linux-uclibc/sysroot/usr/bin/sdl2-config --libs)
+	FLAGS+=   -I../gl4es/include -I../GLU/include
+	FLAGS+=   -L../gl4es/lib -L../GLU/lib
 	#HAVE_GLES=1
 endif
 ifeq ($(PANDORA),1)
@@ -186,7 +184,12 @@ $(OBJ): $(INC)
 
 clean:
 	$(RM) $(OBJ) $(BIN)
-	$(RM) -rf opk
+	$(RM) -rf opk_data/Bitmap
+	$(RM) -rf opk_data/Sounds
+	$(RM) -rf opk_data/Tracks
+	$(RM) -f opk_data/DejaVuSans-Bold.ttf
+	$(RM) -f opk_data/stuntcarracer
+	$(RM) -f stuntcarremake.opk
 
 check:
 	@echo
@@ -213,9 +216,10 @@ check:
 	@echo
 
 opk:
-	@cp -rf Bitmap opk_data
-	@cp -rf Sounds opk_data
-	@cp -rf Tracks opk_data
-	@cp -f DejaVuSans-Bold.ttf opk_data
-	@cp -f stuntcarracer opk_data
+	cp -rf Bitmap opk_data
+	cp -rf Sounds opk_data
+	cp -rf Tracks opk_data
+	cp -f DejaVuSans-Bold.ttf opk_data
+	cp -f stuntcarracer opk_data
+	rm -f stuntcarremake.opk
 	mksquashfs opk_data stuntcarremake.opk
